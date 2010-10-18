@@ -5,12 +5,20 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "s3-backup"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
-    gem.email = "ben.koski@gmail.com"
+    gem.summary = %Q{Easy tar-based backups to S3, with backup rotation, cleanup helpers, and pre-/post-backup hooks.}
+    gem.description = %Q{Easy tar-based backups to S3, with backup rotation, cleanup helpers, and pre-/post-backup hooks.}
+    gem.email = "gems@benkoski.com"
     gem.homepage = "http://github.com/bkoski/s3-backup"
     gem.authors = ["Ben Koski"]
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
+    
+    gem.files += ["lib/s3-backup/base.rb"]
+    
+    gem.add_dependency "aws_credentials", ">= 0.6.0"
+    gem.add_dependency "right_aws", "~> 2.0.0"
+    
+    gem.add_development_dependency "shoulda", ">= 0"
+    gem.add_development_dependency "mocha", ">= 0"
+    
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
@@ -42,7 +50,7 @@ task :test => :check_dependencies
 
 task :default => :test
 
-require 'rake/rdoctask'
+require 'hanna/rdoctask'
 Rake::RDocTask.new do |rdoc|
   version = File.exist?('VERSION') ? File.read('VERSION') : ""
 

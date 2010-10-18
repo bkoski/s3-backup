@@ -1,16 +1,62 @@
 = s3-backup
 
-Description goes here.
+Easy tar-based backups to S3, with backup rotation, cleanup helpers, and pre-/post-backup hooks.
 
-== Note on Patches/Pull Requests
- 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+== Install
+
+  sudo gem install s3-backup
+
+== Easy Example
+
+    b = S3Backup.new('vps-backups')  # Init with the name of bucket to push to; keys handled by AWSCredentials
+    
+    b.files << '/usr/local/important.data'
+    b.files << '/usr/local/more/important.data'
+    b.files << '/usr/local/secrets'
+    
+    b.run  
+
+This will:
+
+1. Create a .tar.gz file including everything in <tt>files</tt>
+2. Push tar to S3
+3. Delete old backups (keeps 5 by default, but you can change <tt>copies_to_keep</tt>)
+4. Remove scratch files
+
+== Hooks
+
+S3Backup also includes a <tt>before_backup</tt> and <tt>after_backup</tt> hook to take care of preparing dumpfiles
+and restarting services.  These are just blocks of code.
+
+Also useful, <tt>files_to_cleanup</tt> contains a list of files to cleanup post-backup.  You
+can add your scratch files to this list and they'll be deleted after each run, even if an error is encountered.
+
+<tt>tar_excludes</tt> is an array of patterns for tar to exclude -- for example, "*.log"
+
+For example:
+
+    b = S3Backup.new('vps-backups')
+
+    b.before_backup do
+      `mysqldump -h locahost important_data > /tmp/important_data.sql`
+      raise "mysqdump failed" if !$?.success?
+
+      b.files_to_cleanup << '/tmp/important_data.sql'
+      b.files << '/tmp/important_data.sql'
+    end
+
+    b.run
+
+You'll find additional opts in the S3Backup docs.
+
+== Suggested deployment
+
+Create a ruby script, and add to your crontab.  Don't forget to 2>&1 the output and set a <tt>MAILTO</tt> to get error notices.
+
+== Notes
+
+1. This uses AWSCredentials[http://github.com/bkoski/aws_credentials] to manage AWS keys.
+2. This doesn't work on Windows.
 
 == Copyright
 
